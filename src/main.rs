@@ -1,4 +1,7 @@
-use macroquad::prelude::*;
+use macroquad::{
+    prelude::*,
+    ui::{root_ui, widgets},
+};
 
 #[macroquad::main("mandelbrot-set")]
 async fn main() {
@@ -23,6 +26,8 @@ async fn main() {
     let mut pos_y: f32 = 0.0;
     let mut speed: f32 = 0.55;
     let mut zoom: f32 = 1.0;
+
+    let mut mandel_inc = 1;
 
     set_default_camera();
     loop {
@@ -66,6 +71,14 @@ async fn main() {
         );
         gl_use_default_material();
 
+        // this is very temporary
+        // and extermly jank
+        if is_key_pressed(KeyCode::Space) {
+            let filename = format!("mandelbrot_{}.png", mandel_inc);
+            get_screen_data().export_png(&filename);
+            mandel_inc += 1;
+        }
+
         next_frame().await;
     }
 }
@@ -93,8 +106,9 @@ void main() {
     float x = 0.0;
     float y = 0.0;
     float tmp = 0.0;
-
-    int iter_max = 500;
+    
+    // make this a uniform
+    int iter_max = 1000;
     int i = 0;
 
     for(; i < iter_max; i++){
