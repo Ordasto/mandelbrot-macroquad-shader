@@ -1,6 +1,10 @@
 # Mandelbrot Set GLSL Shader
 
+
+## Todo
 Still needs work, coloring is kinda jank and the iteration lines annoy the hell out of me.
+Also the zooming doesn't work well yet, it zooms into the center of the entire set.
+
 
 ## Images
 These images are at 1000 max iterations. After that it starts to slow down somewhat but I haven't tried compiling this in release mode. This was also done on a ~7 year old laptop.
