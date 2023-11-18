@@ -5,7 +5,7 @@ use macroquad::{
 
 #[macroquad::main("mandelbrot-set")]
 async fn main() {
-    let texture = render_target(100, 100).texture;
+    let texture = render_target(1, 1).texture;
     let material = load_material(
         ShaderSource::Glsl {
             vertex: VERTEX_SHADER,
@@ -24,10 +24,17 @@ async fn main() {
     )
     .unwrap();
 
-    let mut pos_x: f32 = 0.0;
-    let mut pos_y: f32 = 0.0;
+    // as far as i can go currently
+    // let mut pos_x: f32 = -0.57732594;
+    // let mut pos_y: f32 = 0.5470669;
+    // let mut zoom: f32 = 0.0000036658892;
+
+    let mut pos_x: f32 = 0.;
+    let mut pos_y: f32 = 0.;
+    let mut zoom: f32 = 1.;
+
+    let mut max_iterations = 1000;
     let speed: f32 = 0.55;
-    let mut zoom: f32 = 1.0;
 
     let mut mandel_inc = 1;
 
@@ -55,16 +62,15 @@ async fn main() {
         if is_key_down(KeyCode::E) {
             zoom += 0.5 * zoom * dt;
         }
-
         clear_background(WHITE);
 
         gl_use_material(&material);
         material.set_uniform("screen_size", (screen_width(), screen_height()));
         material.set_uniform("position", (pos_x, pos_y));
         material.set_uniform("zoom", zoom);
-        material.set_uniform("max_iterations", 100);
+        material.set_uniform("max_iterations", max_iterations);
         material.set_uniform("time", get_time() as f32);
-        println!("{}", get_time());
+
         draw_texture_ex(
             &texture,
             0.0,
@@ -77,14 +83,16 @@ async fn main() {
         );
         gl_use_default_material();
 
-        // this is very temporary
-        // and extermly jank
+        // // this is very temporary
+        // // and extermly jank
+        // if is_key_pressed(KeyCode::Space) {
+        //     let filename = format!("images/mandelbrot_{}.png", mandel_inc);
+        //     get_screen_data().export_png(&filename);
+        //     mandel_inc += 1;
+        // }
         if is_key_pressed(KeyCode::Space) {
-            let filename = format!("images/mandelbrot_{}.png", mandel_inc);
-            get_screen_data().export_png(&filename);
-            mandel_inc += 1;
+            println!("x:{}, y:{}, zoom:{}", pos_x, pos_y, zoom);
         }
-
         next_frame().await;
     }
 }
@@ -114,7 +122,7 @@ void main() {
     
     int i = 0;
 
-    for(; i < max_iterations*int(time); i++){
+    for(; i < max_iterations; i++){
         if(x*x + y*y > 4.0 ){
             break;
         }
