@@ -74,7 +74,7 @@ async fn main() {
         // this is very temporary
         // and extermly jank
         if is_key_pressed(KeyCode::Space) {
-            let filename = format!("mandelbrot_{}.png", mandel_inc);
+            let filename = format!("images/mandelbrot_{}.png", mandel_inc);
             get_screen_data().export_png(&filename);
             mandel_inc += 1;
         }
@@ -92,12 +92,14 @@ uniform float zoom;
 
 void main() {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    vec2 coord = gl_FragCoord.xy / screen_size.xy;
-    
-    vec2 scaled = vec2(
-        coord.x * (0.47 - -2.00) + -2.00,
-        coord.y * (1.12 - -1.12) + -1.12
-    );
+
+// vec2 coord = gl_FragCoord.xy / screen_size.xy;
+//     vec2 scaled = vec2(
+//         coord.x * (0.47 - -2.00) + -2.00,
+//         coord.y * (1.12 - -1.12) + -1.12
+//     );
+//
+    vec2 scaled = (2.0*gl_FragCoord.xy - screen_size.xy) / screen_size.y;
 
     scaled.x += position.x;
     scaled.y += position.y;
@@ -110,6 +112,8 @@ void main() {
     // make this a uniform
     int iter_max = 1000;
     int i = 0;
+
+
 
     for(; i < iter_max; i++){
         if(x*x + y*y > 4.0){
