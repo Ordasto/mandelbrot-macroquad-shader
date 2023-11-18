@@ -1,6 +1,6 @@
 # Mandelbrot Set GLSL Shader
 
-Still needs work, coloring is kinda jank and the iteraton lines annoy the hell out of me.
+Still needs work, coloring is kinda jank and the iteration lines annoy the hell out of me.
 
 ## Images
 These images are at 1000 max iterations. After that it starts to slow down somewhat but I haven't tried compiling this in release mode. This was also done on a ~7 year old laptop.
