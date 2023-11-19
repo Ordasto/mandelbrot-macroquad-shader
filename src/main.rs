@@ -1,3 +1,5 @@
+use std::env;
+
 use macroquad::{
     prelude::*,
     ui::{root_ui, widgets},
@@ -24,6 +26,9 @@ async fn main() {
     )
     .unwrap();
 
+    let args: Vec<String> = env::args().collect();
+    let arg_iter = args.get(1);
+
     // as far as i can go currently
     // let mut pos_x: f32 = -0.57732594;
     // let mut pos_y: f32 = 0.5470669;
@@ -33,10 +38,14 @@ async fn main() {
     let mut pos_y: f32 = 0.;
     let mut zoom: f32 = 1.;
 
-    let mut max_iterations = 1000;
+    let mut max_iterations = match arg_iter {
+        Some(s) => s.parse::<i32>().unwrap_or(1000),
+        None => 1000,
+    };
+
     let speed: f32 = 0.55;
 
-    let mut mandel_inc = 1;
+    // let mut mandel_inc = 1;
 
     set_default_camera();
     loop {
