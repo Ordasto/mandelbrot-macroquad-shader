@@ -1,13 +1,12 @@
 use std::env;
 
 use macroquad::{
-    prelude::*,
-    ui::{root_ui, widgets},
+    file, prelude::*, telemetry::frame, ui::{root_ui, widgets}
 };
 
 #[macroquad::main("mandelbrot-set")]
 async fn main() {
-    let texture = render_target(1, 1).texture;
+    let texture = render_target(16, 9).texture;
     let material = load_material(
         ShaderSource::Glsl {
             vertex: DOUBLE_VERTEX_SHADER,
@@ -29,14 +28,18 @@ async fn main() {
     let args: Vec<String> = env::args().collect();
     let arg_iter = args.get(1);
 
-    // as far as i can go currently
-    let mut pos_x: f32 = -0.57732594;
-    let mut pos_y: f32 = 0.5470669;
-    //let mut zoom: f32 = 0.0000036658892;
-
     let mut pos_x: f32 = 0.;
     let mut pos_y: f32 = 0.;
     let mut zoom: f32 = 1.;
+
+    // as far as i can go currently
+    // let mut pos_x: f32 = -0.57732594;
+    // let mut pos_y: f32 = 0.5470669;
+    //let mut zoom: f32 = 0.0000036658892;
+
+    // let mut pos_x: f32 = -0.83442765;
+    // let mut pos_y: f32 = 0.2046405;
+    // let mut zoom:f32 = 77624730000.0;
 
     let mut max_iterations = match arg_iter {
         Some(s) => s.parse::<i32>().unwrap_or(1000),
@@ -46,6 +49,8 @@ async fn main() {
     let speed: f32 = 0.55;
 
     // let mut mandel_inc = 1;
+    let mut recording = false;
+    let mut frames:Vec<Image> = Vec::new();
 
     set_default_camera();
     loop {
@@ -65,18 +70,20 @@ async fn main() {
         if is_key_down(KeyCode::S) {
             pos_y -= frame_speed;
         }
-        if is_key_down(KeyCode::Q) {
-            zoom -= 1.0 * zoom * dt;
+        if is_key_down(KeyCode::Q) || recording { // TEMP
+            zoom -= 1.0 * zoom * 0.05 ;//* dt;
         }
         if is_key_down(KeyCode::E) {
             zoom += 1.0 * zoom * dt;
         }
         clear_background(WHITE);
-        let iter_zoom_mod = 10.0;
+        let iter_zoom_mod: f64 = 10.0;
 
         println!("Zoom:{}", zoom);
         max_iterations = clamp((1000 as f32 * zoom.log10() * 1.0) as i32, 400, 60000);
+        // max_iterations = 10000;
         println!("Iter_max: {}", max_iterations);
+        println!("X: {}, Y: {}", pos_x, pos_y);
         gl_use_material(&material);
         material.set_uniform("screen_size", (screen_width(), screen_height()));
         material.set_uniform("position", (pos_x, pos_y));
@@ -103,15 +110,34 @@ async fn main() {
         //     get_screen_data().export_png(&filename);
         //     mandel_inc += 1;
         // }
+        if recording {
+            frames.push(get_screen_data());
+        }
+
+        if is_key_pressed(KeyCode::R){
+            recording = !recording;
+        }
         if is_key_pressed(KeyCode::Space) {
-            println!("x:{}, y:{}, zoom:{}", pos_x, pos_y, zoom);
+            frames.push(get_screen_data());
+        }
+        if is_key_pressed(KeyCode::Escape) || zoom < 0.9 && recording{
+            break;
         }
         next_frame().await;
     }
+
+    // Might need to change zooming to not factor in delta time to make it smooth
+    for (i, img) in frames.iter().enumerate(){
+        println!("\nSAVING IMAGE: {}\n This will cause a fair amount of lag, please wait.\n",i);
+        let filename = format!("images/mandelbrot_{}.png", i);
+        img.export_png(&filename);
+    }
+    println!("END ");
+    // export images;
 }
 
 const DOUBLE_FRAGMENT_SHADER: &str = r#"
-#version 330 core
+#version 430 core
 precision highp float;
 
 out vec4 fragColor;
@@ -164,19 +190,20 @@ void main() {
  
     // need to figure out an actual good method of coloring 
     if(i < max_iterations){
-        fragColor.r = i_norm * fi;
-        fragColor.g = i_norm * fi/2.0;
-        fragColor.b = i_norm * fi/2.0;
+        float zn = float(sqrt(x*x + y*y));
+        float nu = log(log(zn) / log(2.0)) / log(2.0);
+        float iteration_float = float(i) + 1.0 - nu;
+        
+        // Color interpolation
+        float smooth_color = iteration_float / float(max_iterations);
+        vec3 color = smooth_color * vec3(1.0, 1.0, 1.0); 
+        fragColor = vec4(color*1.5, 1.0);
     }
-    
 }
-
-
-
 "#;
 
 const DOUBLE_VERTEX_SHADER: &str = "
-#version 330 core
+#version 430 core
 in vec3 position;
 in vec2 texcoord;
 in vec4 color0;
